@@ -1,13 +1,11 @@
 from _code.Be_train import RunTrain
 from _code.Be_test import RunTest
-from _code.Be_test2 import RunTest2
-from glob import glob
-import os, torch, random
+import os, torch
 
 Data= 'CAR'
 dst = '_result/'
 
-Len = 24
+Len = 12
 Dim = 12
 
 img_size = 256
