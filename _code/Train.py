@@ -24,12 +24,7 @@ class learn():
         self.no = no
         self.idx = idx
         self.dst = dst
-        self.gpuid = gpuid #len(gpuid)=1: 
-        
-        if len(gpuid)>1: 
-            self.mp = True
-        else:
-            self.mp = False
+        self.gpuid = gpuid
             
         self.batch_size = batch_size; print('batch size: {}'.format(batch_size))
         self.num_workers = num_workers; print('num workers: {}'.format(num_workers))
@@ -54,7 +49,7 @@ class learn():
         self.setModel()
         self.criterion = nn.CrossEntropyLoss()
         self.opt(self.num_epochs)
-        return self.best_acc
+        return
     
 
     ##################################################
@@ -70,14 +65,14 @@ class learn():
     # step 1: Loading Data
     ##################################################
     def loadData(self):
-        # truncate data
+        # balance data for each class
         TH = 100
         
         # sort classes and fix the class order  
         all_class = sorted([k for k in self.data_dict_ori['tra']], key = lambda x:x)
 
         # append image
-        self.data_dict = {p:{i:[] for i in range(self.ID.max().item()+1)} for p in ['tra','val']}
+        self.data_dict = {p:{i:[] for i in range(self.ID.max().item()+1)} for p in PHASE}
         for i in range(len(all_class)):
             tra_imgs = self.data_dict_ori['tra'][all_class[i]]
             meta_class = self.ID[i].item()
@@ -94,7 +89,6 @@ class learn():
                                        transforms.RandomRotation(10),
                                        transforms.RandomCrop(self.imgsize),
                                        transforms.RandomHorizontalFlip(),
-                                       # transforms.ColorJitter(0.1,0.1,0.1,0.1),
                                        transforms.ToTensor(),
                                        transforms.Normalize(self.RGBmean, self.RGBstdv)]),
                                 'val': transforms.Compose([
@@ -116,51 +110,25 @@ class learn():
     ##################################################
     def setModel(self):
         print('Setting model')
-#         self.model = resnetX(self.classSize, pretrained=True)
-#         self.model.avgpool=nn.AvgPool2d(self.avg)
-#         num_ftrs = self.model.fcnew.in_features
-#         self.model.fcnew = nn.Linear(num_ftrs, self.classSize)
-        
-#         self.model = self.model.to('cuda:0')
-#         self.optimizer = optim.SGD(self.model.parameters(), lr=self.init_lr, momentum=0.9)
-        
         self.model = models.resnet50(pretrained=True)
         self.model.avgpool=nn.AvgPool2d(self.avg)
         num_ftrs = self.model.fc.in_features
         self.model.fc = nn.Linear(num_ftrs, self.classSize)
         
-        
-#         # oth
-#         x = torch.Tensor(special_ortho_group.rvs(num_ftrs))
-#         self.model.fc.weight.data = x[:self.classSize,:]
-#         self.model.fc.bias.data = torch.zeros(self.classSize)
-        
-#         for param in self.model.fc.parameters(): param.requires_grad = False
-#         self.model = self.model.cuda()
-#         Params = iter([p[1] for p in self.model.named_parameters() if p[0].split('.')[0]!='fc'])
-#         self.optimizer = optim.SGD(Params, lr=self.init_lr, momentum=0.9)
-        
-        # parallel computing and opt setting
-        if self.mp:
-            print('Training on Multi-GPU')
-            self.batch_size = self.batch_size*len(self.gpuid)
-            self.model = torch.nn.DataParallel(self.model,device_ids=self.gpuid).to('cuda:0')#
-            self.optimizer = optim.SGD(self.model.module.parameters(), lr=self.init_lr, momentum=0.9)
-        else: 
-            print('Training on Single-GPU')
-            self.model = self.model.to('cuda:0')
-            self.optimizer = optim.SGD(self.model.parameters(), lr=self.init_lr, momentum=0.9)
+        print('Training on Single-GPU')
+        self.model = self.model.to('cuda:0')
+        self.optimizer = optim.SGD(self.model.parameters(), lr=self.init_lr, momentum=0.9)
         return
     
     def lr_scheduler(self, epoch):
-        if epoch>=0.6*self.num_epochs and not self.decay_time[0]: 
+        if epoch>=0.3*self.num_epochs and not self.decay_time[0]: 
             self.decay_time[0] = True
-            lr = self.init_lr*0.1#self.decay_rate
+            lr = self.init_lr*self.decay_rate
             print('LR is set to {}'.format(lr))
             for param_group in self.optimizer.param_groups: param_group['lr'] = lr
-        if epoch>=0.8*self.num_epochs and not self.decay_time[1]: 
+        if epoch>=0.6*self.num_epochs and not self.decay_time[1]: 
             self.decay_time[1] = True
-            lr = self.init_lr*0.01#self.decay_rate*self.decay_rate
+            lr = self.init_lr*self.decay_rate*self.decay_rate
             print('LR is set to {}'.format(lr))
             for param_group in self.optimizer.param_groups: param_group['lr'] = lr
         return
@@ -169,16 +137,14 @@ class learn():
     # step 3: Learning
     ##################################################
     def tra(self):
-        if self.mp:
-            self.model.module.train(True)  # Set model to training mode
-        else:
-            self.model.train(True)  # Set model to training mode
+        # Set model to training mode
+        self.model.train(True)
             
-        dataLoader = torch.utils.data.DataLoader(self.dsets['tra'], batch_size=self.batch_size, shuffle=True, num_workers=self.num_workers)#sampler=XSampler(self.classMark['tra'], GSize=1)
+        dataLoader = torch.utils.data.DataLoader(self.dsets['tra'], batch_size=self.batch_size, shuffle=True, num_workers=self.num_workers)
         
         L_data, T_data, N_data = 0.0, 0, 0
-        # iterate batch
         
+        # iterate batch
         for data in dataLoader:
             self.optimizer.zero_grad()
             
@@ -199,10 +165,8 @@ class learn():
         return L_data/N_data, T_data/N_data 
 
     def val(self):
-        if self.mp:
-            self.model.module.eval()  # Set model to eval mode
-        else:
-            self.model.eval()  # Set model to eval mode
+        # Set model to eval mode
+        self.model.eval()  
             
         dataLoader = torch.utils.data.DataLoader(self.dsets['val'], batch_size=self.batch_size, shuffle=False, num_workers=self.num_workers)
         
@@ -246,6 +210,7 @@ class learn():
         torch.save(torch.Tensor(self.record), self.dst + 'record_{:02}_{}.pth'.format(self.idx, self.no))
         time_elapsed = time.time() - since
         print('Training complete in {:.0f}m {:.0f}s'.format(time_elapsed//60, time_elapsed%60))
+        print('Best val acc: {}'.format(self.best_acc))
         print('Best val acc in epoch: {}'.format(self.best_epoch))
         return
     
