@@ -1,5 +1,7 @@
 # Randomized-Ensemble-Embeddings
 
+This repository contains a PyTorch(0.4.0) implementation of Randomized-Ensemble-Embeddings
+
 Prepare the training data and testing data in python dictionary format. 
 
 For example:
