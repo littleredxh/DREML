@@ -3,18 +3,11 @@ import os, time, copy, random
 from glob import glob
 
 from torchvision import models, transforms, datasets
-from torch.autograd import Variable
-import torch.nn.functional as F
-from torch.utils.data.sampler import SequentialSampler
 import torch.optim as optim
 import torch.nn as nn
 import torch
 
-from .Sampler import BalanceSampler
 from .Reader import ImageReader
-from .Utils import invDict
-from .model.Net import resnetX
-from scipy.stats import special_ortho_group
 
 PHASE = ['tra','val']
 
