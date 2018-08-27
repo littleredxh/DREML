@@ -4,11 +4,11 @@ from .Train import learn
 
 import os, torch, random
 
-def RunTrain(Data, dst, data_dict, imagesize, L, Dim, bt=32, avgpool=8, lr=0.01, ep=10, core=[0]):
+def RunTrain(Data, dst, data_dict, imagesize, L, Dim, bt=128, avgpool=8, lr=0.01, ep=12, core=[0]):
     if not os.path.exists(dst): os.makedirs(dst)
 
     # class number
-    N = len(data_dict['tra'])
+    N = len(data_dict)
     print('# of classes: {}'.format(N))
     
     # ID matrix

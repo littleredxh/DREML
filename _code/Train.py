@@ -6,7 +6,7 @@ from torchvision import models, transforms, datasets
 import torch.optim as optim
 import torch.nn as nn
 import torch
-
+from .Loss import ProxyStatic
 from .Reader import ImageReader
 
 PHASE = ['tra','val']
@@ -40,7 +40,7 @@ class learn():
     def run(self):
         self.loadData()
         self.setModel()
-        self.criterion = nn.CrossEntropyLoss()
+        self.criterion = ProxyStatic(self.classSize, self.classSize)############
         self.opt(self.num_epochs)
         return
     
@@ -59,38 +59,30 @@ class learn():
     ##################################################
     def loadData(self):
         # balance data for each class
-        TH = 100
+        TH = 200
         
         # sort classes and fix the class order  
         all_class = sorted([k for k in self.data_dict_ori], key = lambda x:x)
 
         # append image
-        self.data_dict_meta = {p:{i:[] for i in range(self.ID.max().item()+1)} for p in PHASE}
+        self.data_dict_meta = {i:[] for i in range(self.ID.max().item()+1)}
         for i in range(len(all_class)):
             meta_class = self.ID[i].item()
             tra_imgs = self.data_dict_ori[all_class[i]]
             if len(tra_imgs)>TH: tra_imgs = random.sample(tra_imgs,TH)
-                
-            self.data_dict_meta['tra'][meta_class]+=tra_imgs[:int(0.9*len(tra_imgs))]
-            self.data_dict_meta['val'][meta_class]+=tra_imgs[int(0.9*len(tra_imgs)):]
-                
-        self.data_transforms = {'tra': transforms.Compose([
-                                       transforms.Resize(int(self.imgsize*1.1)),
-                                       transforms.RandomRotation(10),
-                                       transforms.RandomCrop(self.imgsize),
-                                       transforms.RandomHorizontalFlip(),
-                                       transforms.ToTensor(),
-                                       transforms.Normalize(self.RGBmean, self.RGBstdv)]),
-                                'val': transforms.Compose([
-                                       transforms.Resize(self.imgsize),
-                                       transforms.CenterCrop(self.imgsize),
-                                       transforms.ToTensor(),
-                                       transforms.Normalize(self.RGBmean, self.RGBstdv)])}
+            self.data_dict_meta[meta_class]+=tra_imgs
+        
+        self.data_transforms = transforms.Compose([transforms.Resize(int(self.imgsize*1.1)),
+                                                   transforms.RandomRotation(10),
+                                                   transforms.RandomCrop(self.imgsize),
+                                                   transforms.RandomHorizontalFlip(),
+                                                   transforms.ToTensor(),
+                                                   transforms.Normalize(self.RGBmean, self.RGBstdv)])
         
 
-        self.dsets = {p: ImageReader(self.data_dict_meta[p], self.data_transforms[p]) for p in PHASE}
-        print(len(self.dsets['tra']))
-        self.classSize = len(self.data_dict_meta['tra'])
+        self.dsets = ImageReader(self.data_dict_meta, self.data_transforms)
+        print(len(self.dsets))
+        self.classSize = len(self.data_dict_meta)
         print('output size: {}'.format(self.classSize))
 
         return
@@ -100,7 +92,7 @@ class learn():
     ##################################################
     def setModel(self):
         print('Setting model')
-        self.model = models.resnet50(pretrained=True)
+        self.model = models.resnet18(pretrained=True)
         self.model.avgpool=nn.AvgPool2d(self.avg)
         num_ftrs = self.model.fc.in_features
         self.model.fc = nn.Linear(num_ftrs, self.classSize)
@@ -111,12 +103,12 @@ class learn():
         return
     
     def lr_scheduler(self, epoch):
-        if epoch>=0.3*self.num_epochs and not self.decay_time[0]: 
+        if epoch>=0.5*self.num_epochs and not self.decay_time[0]: 
             self.decay_time[0] = True
             lr = self.init_lr*self.decay_rate
             print('LR is set to {}'.format(lr))
             for param_group in self.optimizer.param_groups: param_group['lr'] = lr
-        if epoch>=0.6*self.num_epochs and not self.decay_time[1]: 
+        if epoch>=0.8*self.num_epochs and not self.decay_time[1]: 
             self.decay_time[1] = True
             lr = self.init_lr*self.decay_rate*self.decay_rate
             print('LR is set to {}'.format(lr))
@@ -130,7 +122,7 @@ class learn():
         # Set model to training mode
         self.model.train(True)
             
-        dataLoader = torch.utils.data.DataLoader(self.dsets['tra'], batch_size=self.batch_size, shuffle=True, num_workers=self.num_workers)
+        dataLoader = torch.utils.data.DataLoader(self.dsets, batch_size=self.batch_size, shuffle=True, num_workers=self.num_workers)
         
         L_data, T_data, N_data = 0.0, 0, 0
         
@@ -141,7 +133,7 @@ class learn():
             with torch.set_grad_enabled(True):
                 inputs_bt, labels_bt = data # <FloatTensor> <LongTensor>
                 fvec = self.model(inputs_bt.to('cuda:0'))
-                loss = self.criterion(fvec, labels_bt.to('cuda:0'))
+                loss = self.criterion(fvec, labels_bt)#.to('cuda:0')
 
                 loss.backward()
                 self.optimizer.step()  
@@ -153,28 +145,6 @@ class learn():
             N_data += len(labels_bt)
             
         return L_data/N_data, T_data/N_data 
-
-    def val(self):
-        # Set model to eval mode
-        self.model.eval()  
-            
-        dataLoader = torch.utils.data.DataLoader(self.dsets['val'], batch_size=self.batch_size, shuffle=False, num_workers=self.num_workers)
-        
-        L_data, T_data, N_data = 0.0, 0, 0
-        # iterate batch
-        with torch.set_grad_enabled(False):
-            for data in dataLoader:
-                inputs_bt, labels_bt = data # <FloatTensor> <LongTensor>
-                fvec = self.model(inputs_bt.to('cuda:0'))
-                loss = self.criterion(fvec, labels_bt.to('cuda:0'))
-
-                _, preds_bt = torch.max(fvec.to('cpu'), 1)
-
-                L_data += loss.item()
-                T_data += torch.sum(preds_bt == labels_bt).item()
-                N_data += len(labels_bt)
-            
-        return L_data/N_data, T_data/N_data
         
     def opt(self, num_epochs):
         # recording time and epoch acc and best result
@@ -186,22 +156,21 @@ class learn():
             self.lr_scheduler(epoch)
             
             tra_loss, tra_acc = self.tra()
-            val_loss, val_acc = self.val()
             
-            self.record.append((epoch, tra_loss, val_loss, tra_acc, val_acc))
-            print('tra - Loss:{:.4f} - Acc:{:.4f}\nval - Loss:{:.4f} - Acc:{:.4f}'.format(tra_loss, tra_acc, val_loss, val_acc))    
-    
+            self.record.append((epoch, tra_loss, tra_acc))
+            print('tra - Loss:{:.4f} - Acc:{:.4f}'.format(tra_loss, tra_acc))
+            
             # deep copy the model
-            if epoch >= 1 and val_acc> self.best_acc:
-                self.best_acc = val_acc
+            if epoch >= 1 and tra_acc> self.best_acc:
+                self.best_acc = tra_acc
                 self.best_epoch = epoch
                 torch.save(self.model, self.dst + 'model_{:02}_{}.pth'.format(self.idx,self.no))
         
         torch.save(torch.Tensor(self.record), self.dst + 'record_{:02}_{}.pth'.format(self.idx, self.no))
         time_elapsed = time.time() - since
         print('Training complete in {:.0f}m {:.0f}s'.format(time_elapsed//60, time_elapsed%60))
-        print('Best val acc: {}'.format(self.best_acc))
-        print('Best val acc in epoch: {}'.format(self.best_epoch))
+        print('Best tra acc: {}'.format(self.best_acc))
+        print('Best tra acc in epoch: {}'.format(self.best_epoch))
         return
     
     
