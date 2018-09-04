@@ -31,5 +31,11 @@ We also supply the recall@K accuracy calculation process in the file: ```Recall.
 
 ### Citation
 ```
-
+@InProceedings{Xuan_2018_ECCV,
+author = {Xuan, Hong and Souvenir, Richard and Pless, Robert},
+title = {Deep Randomized Ensembles for Metric Learning},
+booktitle = {The European Conference on Computer Vision (ECCV)},
+month = {September},
+year = {2018}
+}
 ```
