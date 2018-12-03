@@ -19,7 +19,7 @@ class ProxyStatic(Module):
         N = fLvec.size(0)
         
         # normalization(original proxy method)
-        fvec = norml2(fvec)
+        # fvec = norml2(fvec)
 
         # distance matrix
         Dist = fvec.mm((self.proxy).t())
