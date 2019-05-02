@@ -23,7 +23,7 @@ data_dict = {'tra' : {'class_tra_01':[image list],
 ```
                  
 
-Replace data_dict_tra and data_dict_test in line 14 and line 18 of ```main.py```
+Replace Data and data_dict in the file ```main.py```
 
 We only have the color nomarlization info for CUB, CAR, SOP, CIFAR100, In-shop cloth, and PKU vehicleID data. If you use other dataset please add the color nomarlization data in the file: ```_code/color_lib.py```
 
