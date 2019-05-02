@@ -30,12 +30,14 @@ We only have the color nomarlization info for CUB, CAR, SOP, CIFAR100, In-shop c
 We also supply our efficient recall@K accuracy calculation functions which are located in ```_code/Utils.py```
 
 ```
-recall(Fvec, imgLab,rank=None) function is for CAR,CUB and SOP dataset
+This function is for CAR,CUB and SOP dataset
+recall(Fvec, imgLab,rank=None) 
 Fvec:   Feature vectors, N by D torch.Tensor
 imgLab: Image label, python list
 rank:   k of recall@k, python list
 
-recall2(Fvec_val, Fvec_gal, imgLab_val, imgLab_gal,rank=None) function is for In-shop Cloth dataset
+This function is for In-shop Cloth dataset
+recall2(Fvec_val, Fvec_gal, imgLab_val, imgLab_gal,rank=None) 
 Fvec_val:     Probe feature vectors, N_val by D torch.Tensor
 Fvec_gal:     Gallary feature vectors, N_gal by D torch.Tensor
 imgLab_val:   Probe image label, python list
