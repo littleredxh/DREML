@@ -49,13 +49,18 @@ Please cite our paper, if you use these functions for recall calculation.
 
 ### Requirements
 Pytorch 1.0.0
+
 Python 3.5
 
 ### Updates
 05/01/2019/: 
-Upgrade to PyTorch 1.0.0 version. 
+
+Upgrade to PyTorch 1.0.0 version
+
 Simplified the codes structure
+
 Fix the bug in Recall.ipynb
+
 Add recall functions for In-shop CAR, CUB, SOP and cloth dataset
 
 ### Citation

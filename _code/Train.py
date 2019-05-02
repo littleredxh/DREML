@@ -17,7 +17,7 @@ class learn():
         self.dst = dst
         
         self.data_dict_tra = data_dict['tra']
-        self.data_dict_val = data_dict['val']
+        self.data_dict_val = data_dict['test']
         
         self.batch_size = batch_size; print('batch size: {}'.format(self.batch_size))
         self.num_workers = 8; print('num workers: {}'.format(self.num_workers))
@@ -185,8 +185,8 @@ class learn():
                 Fvecs.append(fvec.cpu())
 
         Fvecs_all = torch.cat(Fvecs,0)
-        torch.save(dsets, self.dst+'valdsets.pth')
-        torch.save(Fvecs_all, self.dst+ str(self.l) + 'valFvecs.pth')
+        torch.save(dsets, self.dst+'testdsets.pth')
+        torch.save(Fvecs_all, self.dst+ str(self.l) + 'testFvecs.pth')
         return 
 
     
