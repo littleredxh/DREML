@@ -1,6 +1,6 @@
 # Deep Randomized Ensembles for Metric Learning
 
-This repository contains a PyTorch(1.0.0) implementation of Deep Randomized Ensembles for Metric Learning(ECCV2018)
+This repository contains the PyTorch(1.0.0) implementation of Deep Randomized Ensembles for Metric Learning(ECCV2018)
 
 Paper link: https://arxiv.org/abs/1808.04469
 
@@ -23,19 +23,19 @@ data_dict = {'tra' : {'class_tra_01':[image path list],
 ```
                  
 
-Replace Data and data_dict in the file ```main.py```
+Replace ```Data``` and ```data_dict``` in the file ```main.py```
 
-We only have the color nomarlization info for CUB, CAR, SOP, CIFAR100, In-shop cloth, and PKU vehicleID data. If you use other dataset please add the color nomarlization data in the file: ```_code/color_lib.py```
+We have the color nomarlization info for CUB, CAR, SOP, CIFAR100, In-shop cloth and PKU vehicleID data. If you want to use other dataset please add the color nomarlization value in ```_code/color_lib.py```
 
-We also supply our efficient recall@K accuracy calculation functions which are located in ```_code/Utils.py```
+We also provide efficient recall@K accuracy calculation functions in ```_code/Utils.py```
 
 ```
-Function for CAR,CUB and SOP dataset：recall(Fvec, imgLab,rank=None) 
+Function for CAR,CUB and SOP dataset：recall(Fvec, imgLab, rank=None) 
 Fvec:   Feature vectors, N by D torch.Tensor
 imgLab: Image label, python list
 rank:   k of recall@k, python list
 
-Function for In-shop Cloth dataset： recall2(Fvec_val, Fvec_gal, imgLab_val, imgLab_gal,rank=None) 
+Function for In-shop Cloth dataset： recall2(Fvec_val, Fvec_gal, imgLab_val, imgLab_gal, rank=None) 
 Fvec_val:     Probe feature vectors, N_val by D torch.Tensor
 Fvec_gal:     Gallary feature vectors, N_gal by D torch.Tensor
 imgLab_val:   Probe image label, python list
