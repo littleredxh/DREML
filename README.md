@@ -61,7 +61,7 @@ Simplified the codes structure
 
 Fix the bug in Recall.ipynb
 
-Add recall functions for In-shop CAR, CUB, SOP and cloth dataset
+Add recall functions for CAR, CUB, SOP and In-shop cloth dataset
 
 ### Citation
 ```
