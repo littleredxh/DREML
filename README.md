@@ -1,8 +1,9 @@
 ## New approach for better retrieval performance with single model: Improved Embeddings with Easy Positive Triplet Mining(WACV2020)
 
-git link: https://github.com/littleredxh/EasyPositiveHardNegative
+Paper link: https://arxiv.org/abs/1904.04370
 
-paper link: https://arxiv.org/abs/1904.04370
+Git   link: https://github.com/littleredxh/EasyPositiveHardNegative
+
 
 # Deep Randomized Ensembles for Metric Learning
 
