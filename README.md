@@ -1,8 +1,14 @@
+## New approach for better retrieval performance with single model: Improved Embeddings with Easy Positive Triplet Mining(WACV2020)
+
+git link: https://github.com/littleredxh/EasyPositiveHardNegative
+
+paper link: https://arxiv.org/abs/1904.04370
+
 # Deep Randomized Ensembles for Metric Learning
 
 This repository contains the PyTorch(1.0.0) implementation of Deep Randomized Ensembles for Metric Learning(ECCV2018)
 
-Paper link: https://arxiv.org/abs/1808.04469
+Paper link: https://arxiv.org/abs/1808.04469 or https://www2.seas.gwu.edu/~pless/papers/DREML_ECCV2018.pdf
 
 Prepare the training data and testing data in python dictionary format. 
 
