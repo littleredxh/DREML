@@ -7,7 +7,7 @@ Git   link: https://github.com/littleredxh/EasyPositiveHardNegative
 
 # Deep Randomized Ensembles for Metric Learning
 
-This repository contains the PyTorch(1.0.0) implementation of Deep Randomized Ensembles for Metric Learning(ECCV2018)
+This repository contains the PyTorch(1.5.0) implementation of Deep Randomized Ensembles for Metric Learning(ECCV2018)
 
 Paper link: https://arxiv.org/abs/1808.04469 or https://www2.seas.gwu.edu/~pless/papers/DREML_ECCV2018.pdf
 
@@ -55,11 +55,14 @@ The example of calling the function is shown in  ```Recall.ipynb```
 Please cite our paper, if you use these functions for recall calculation.
 
 ### Requirements
-Pytorch 1.0.0
+Pytorch 1.5.0
 
-Python 3.5
+Python >3.5
 
 ### Updates
+06/12/2020/: 
+Upgrade to PyTorch 1.5.0 version
+
 05/01/2019/: 
 
 Upgrade to PyTorch 1.0.0 version

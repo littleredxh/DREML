@@ -17,7 +17,7 @@ class learn():
         self.dst = dst
         
         self.data_dict_tra = data_dict['tra']
-        self.data_dict_val = data_dict['test']
+        self.data_dict_val = data_dict['val']
         
         self.batch_size = batch_size; print('batch size: {}'.format(self.batch_size))
         self.num_workers = 8; print('num workers: {}'.format(self.num_workers))
@@ -54,7 +54,6 @@ class learn():
     ##################################################
     def setsys(self):
         if not torch.cuda.is_available(): print('No GPU detected'); return False
-        if not os.path.exists(self.dst): os.makedirs(self.dst)
         return True
     
     ##################################################
@@ -99,19 +98,7 @@ class learn():
         self.model.avgpool=nn.AdaptiveAvgPool2d(1)
         self.model = self.model.cuda()
         self.optimizer = optim.SGD(self.model.parameters(), lr=self.init_lr, momentum=0.9)
-        return
-    
-    def lr_scheduler(self, epoch):
-        if epoch>=0.5*self.num_epochs and not self.decay_time[0]: 
-            self.decay_time[0] = True
-            lr = self.init_lr*self.decay_rate
-            print('LR is set to {}'.format(lr))
-            for param_group in self.optimizer.param_groups: param_group['lr'] = lr
-        if epoch>=0.8*self.num_epochs and not self.decay_time[1]: 
-            self.decay_time[1] = True
-            lr = self.init_lr*self.decay_rate*self.decay_rate
-            print('LR is set to {}'.format(lr))
-            for param_group in self.optimizer.param_groups: param_group['lr'] = lr
+        self.scheduler = optim.lr_scheduler.MultiStepLR(self.optimizer, [0.5, 0.8], gamma=self.decay_rate)
         return
             
     ##################################################
@@ -125,12 +112,14 @@ class learn():
         record = []
         for epoch in range(num_epochs):
             print('Epoch {}/{} \n '.format(epoch, num_epochs - 1) + '-' * 40)
-            self.lr_scheduler(epoch)
             
             tra_loss, tra_acc = self.tra()
             
             record.append((epoch, tra_loss, tra_acc))
             print('tra - Loss:{:.4f} - Acc:{:.4f}'.format(tra_loss, tra_acc))
+            
+            # adjust the learning rate
+            self.scheduler.step()
             
             # deep copy the model
             if epoch >= 1 and tra_acc> best_acc:
