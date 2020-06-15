@@ -14,13 +14,14 @@ class ProxyStaticLoss(Module):
 
         # distance matrix
         Dist = fvec.mm((self.proxy).t())
+        pred = Dist.max(1)[1].cpu()
         
         # loss
         Dist = -F.log_softmax(Dist, dim=1)
         loss = Dist[torch.arange(N),fLvec].mean()
         print('loss:{:.4f}'.format(loss.item()),end='\r')
         
-        return loss
+        return loss, pred
 
 
 

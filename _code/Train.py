@@ -61,7 +61,7 @@ class learn():
     ##################################################
     def loadData(self):
         # balance data for each class
-        TH = 300
+        TH = 500
         
         # append image
         self.data_dict_meta = {i:[] for i in range(max(self.meta_id)+1)}
@@ -98,7 +98,7 @@ class learn():
         self.model.avgpool=nn.AdaptiveAvgPool2d(1)
         self.model = self.model.cuda()
         self.optimizer = optim.SGD(self.model.parameters(), lr=self.init_lr, momentum=0.9)
-        self.scheduler = optim.lr_scheduler.MultiStepLR(self.optimizer, [0.5, 0.8], gamma=self.decay_rate)
+        self.scheduler = optim.lr_scheduler.MultiStepLR(self.optimizer, [int(0.5*self.num_epochs), int(0.8*self.num_epochs)], gamma=self.decay_rate)
         return
             
     ##################################################
@@ -149,11 +149,9 @@ class learn():
             with torch.set_grad_enabled(True):
                 inputs_bt, labels_bt = data # <FloatTensor> <LongTensor>
                 fvec = self.model(inputs_bt.cuda())
-                loss = self.criterion(fvec, labels_bt)
+                loss, preds_bt = self.criterion(fvec, labels_bt)
                 loss.backward()
                 self.optimizer.step()  
-
-            _, preds_bt = torch.max(fvec.cpu(), 1)
 
             L_data += loss.item()
             T_data += torch.sum(preds_bt == labels_bt).item()

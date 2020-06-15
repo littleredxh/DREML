@@ -1,0 +1,5 @@
+_result/
+.ipynb_checkpoints/
+_code/.ipynb_checkpoints/
+_code/__pycache__/
+run.slurm
